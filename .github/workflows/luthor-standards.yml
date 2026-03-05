@@ -1,23 +1,43 @@
 name: Luthor Repo Standards
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
   pull_request:
+  push:
+    branches: [main]
 
+# The called reusable workflows cannot request more than the caller grants.
+# This fixes: "requesting 'actions: read' but only allowed 'actions: none'"
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
   security-events: write
 
 jobs:
   ci:
-    uses: RisaLuthor/luthor-repo-standards/.github/workflows/ci.yml@main
-
-  dependency-review:
-    uses: RisaLuthor/luthor-repo-standards/.github/workflows/dependency-scan.yml@main
+    name: CI (lint + tests)
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
 
   codeql:
-    uses: RisaLuthor/luthor-repo-standards/.github/workflows/security-scan.yml@main
+    name: Security Scan (CodeQL)
+    uses: ./.github/workflows/security-scan.yml
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+  dependency_review:
+    name: Dependency Review
+    uses: ./.github/workflows/dependency-review.yml
+    permissions:
+      contents: read
+      pull-requests: read
 
   sbom:
-    uses: RisaLuthor/luthor-repo-standards/.github/workflows/sbom.yml@main
+    name: SBOM (CycloneDX)
+    uses: ./.github/workflows/sbom.yml
+    permissions:
+      contents: read
