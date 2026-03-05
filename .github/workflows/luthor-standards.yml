@@ -4,10 +4,9 @@ on:
   workflow_dispatch:
   pull_request:
   push:
-    branches: [main]
+    branches: [ main ]
 
-# The called reusable workflows cannot request more than the caller grants.
-# This fixes: "requesting 'actions: read' but only allowed 'actions: none'"
+# Default permissions for the whole workflow (least privilege)
 permissions:
   contents: read
   actions: read
@@ -16,7 +15,7 @@ permissions:
 
 jobs:
   ci:
-    name: CI (lint + tests)
+    name: Standard CI
     uses: ./.github/workflows/ci.yml
     permissions:
       contents: read
