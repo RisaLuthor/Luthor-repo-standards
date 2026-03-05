@@ -2,20 +2,21 @@ name: Luthor Security Scan (CodeQL)
 
 on:
   workflow_call:
+  workflow_dispatch:
   push:
     branches: [ main ]
-  pull_request:
+  schedule:
+    - cron: "23 3 * * 1"
 
 permissions:
   contents: read
-  security-events: write
   actions: read
+  security-events: write
 
 jobs:
   analyze:
     name: CodeQL Analyze (Python)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,5 +29,5 @@ jobs:
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
-      - name: Analyze
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

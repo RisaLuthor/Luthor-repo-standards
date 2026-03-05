@@ -5,6 +5,8 @@ on:
   pull_request:
   push:
     branches: [ main ]
+  schedule:
+    - cron: "23 3 * * 1" # weekly (Mon 03:23 UTC)
 
 permissions:
   contents: read
@@ -16,23 +18,25 @@ jobs:
     permissions:
       contents: read
 
-  codeql:
-    name: Security Scan (CodeQL)
-    uses: ./.github/workflows/security-scan.yml
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-
-  dependency_review:
-    name: Dependency Review
-    uses: ./.github/workflows/dependency-review.yml
-    permissions:
-      contents: read
-      pull-requests: read
-
   sbom:
     name: SBOM (CycloneDX)
     uses: ./.github/workflows/sbom.yml
     permissions:
       contents: read
+
+  dependency_review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/dependency-review.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
+  codeql:
+    name: Security Scan (CodeQL)
+    if: github.event_name != 'pull_request' # run on main + schedule, not PRs
+    uses: ./.github/workflows/security-scan.yml
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
