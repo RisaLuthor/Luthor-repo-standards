@@ -2,6 +2,7 @@ name: Luthor Standard CI
 
 on:
   workflow_call:
+  workflow_dispatch:  
 
 jobs:
   lint-and-test:
