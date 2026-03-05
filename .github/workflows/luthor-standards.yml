@@ -1,0 +1,23 @@
+name: Luthor Repo Standards
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  ci:
+    uses: RisaLuthor/luthor-repo-standards/.github/workflows/ci.yml@main
+
+  dependency-review:
+    uses: RisaLuthor/luthor-repo-standards/.github/workflows/dependency-scan.yml@main
+
+  codeql:
+    uses: RisaLuthor/luthor-repo-standards/.github/workflows/security-scan.yml@main
+
+  sbom:
+    uses: RisaLuthor/luthor-repo-standards/.github/workflows/sbom.yml@main
