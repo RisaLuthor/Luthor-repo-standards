@@ -6,12 +6,8 @@ on:
   push:
     branches: [ main ]
 
-# Default permissions for the whole workflow (least privilege)
 permissions:
   contents: read
-  actions: read
-  pull-requests: read
-  security-events: write
 
 jobs:
   ci:
@@ -25,8 +21,8 @@ jobs:
     uses: ./.github/workflows/security-scan.yml
     permissions:
       contents: read
-      actions: read
       security-events: write
+      actions: read
 
   dependency_review:
     name: Dependency Review

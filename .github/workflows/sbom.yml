@@ -2,7 +2,10 @@ name: Luthor SBOM (CycloneDX)
 
 on:
   workflow_call:
-  workflow_dispatch:  
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -10,51 +13,50 @@ permissions:
 jobs:
   sbom:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install CycloneDX
+      - name: Install CycloneDX (Python)
         run: |
           python -m pip install --upgrade pip
-          pip install cyclonedx-bom
+          python -m pip install cyclonedx-bom
 
-      - name: Generate SBOM (pyproject or requirements)
-        shell: bash
+      - name: Generate Python SBOM (pyproject.toml)
+        if: ${{ hashFiles('pyproject.toml') != '' }}
         run: |
-          set -euo pipefail
+          echo "Generating SBOM from pyproject.toml"
+          cyclonedx-py -o sbom-python.json
 
-          # Prefer pyproject.toml if present
-          if [ -f pyproject.toml ]; then
-            echo "Generating SBOM from pyproject.toml"
-            cyclonedx-py -o sbom.json
-            exit 0
-          fi
+      - name: Generate Python SBOM (requirements.txt)
+        if: ${{ hashFiles('requirements.txt') != '' }}
+        run: |
+          echo "Generating SBOM from requirements.txt"
+          cyclonedx-py requirements -i requirements.txt -o sbom-python-reqs.json
 
-          # Common python reqs locations
-          if [ -f requirements.txt ]; then
-            echo "Generating SBOM from requirements.txt"
-            cyclonedx-py requirements -i requirements.txt -o sbom.json
-            exit 0
-          fi
+      - name: Generate Python SBOM (api/requirements.txt)
+        if: ${{ hashFiles('api/requirements.txt') != '' }}
+        run: |
+          echo "Generating SBOM from api/requirements.txt"
+          cyclonedx-py requirements -i api/requirements.txt -o sbom-api-reqs.json
 
-          if [ -f api/requirements.txt ]; then
-            echo "Generating SBOM from api/requirements.txt"
-            cyclonedx-py requirements -i api/requirements.txt -o sbom.json
-            exit 0
-          fi
+      - name: Generate Node SBOM (package-lock.json)
+        if: ${{ hashFiles('package-lock.json') != '' }}
+        run: |
+          echo "Generating SBOM from package-lock.json"
+          npx --yes @cyclonedx/cyclonedx-npm --output-file sbom-node.json
 
-          echo "No pyproject.toml or requirements file found; writing empty SBOM."
-          echo "{}" > sbom.json
-
-      - name: Upload SBOM artifact
+      - name: Upload SBOM artifacts
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: sbom
-          path: sbom.json
+          name: sboms
+          path: |
+            sbom-*.json
+            sbom-node.json
+          if-no-files-found: ignore

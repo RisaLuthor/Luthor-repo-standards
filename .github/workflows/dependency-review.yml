@@ -2,6 +2,7 @@ name: Luthor Dependency Review
 
 on:
   workflow_call:
+  pull_request:
 
 permissions:
   contents: read

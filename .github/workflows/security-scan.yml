@@ -2,15 +2,17 @@ name: Luthor Security Scan (CodeQL)
 
 on:
   workflow_call:
-  workflow_dispatch:  
+  push:
+    branches: [ main ]
+  pull_request:
 
 permissions:
-  actions: read
   contents: read
   security-events: write
+  actions: read
 
 jobs:
-  codeql:
+  analyze:
     name: CodeQL Analyze (Python)
     runs-on: ubuntu-latest
 
