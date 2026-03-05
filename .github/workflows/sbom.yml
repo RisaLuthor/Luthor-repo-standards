@@ -1,0 +1,55 @@
+name: Luthor SBOM (CycloneDX)
+
+on:
+  workflow_call:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CycloneDX
+        run: |
+          python -m pip install --upgrade pip
+          pip install cyclonedx-bom
+
+      - name: Generate SBOM (pyproject or requirements)
+        run: |
+          set -euo pipefail
+
+          # Prefer pyproject.toml if present
+          if [ -f pyproject.toml ]; then
+            echo "Generating SBOM from pyproject.toml"
+            cyclonedx-py -o sbom.json
+            exit 0
+          fi
+
+          # Common python reqs locations
+          if [ -f requirements.txt ]; then
+            echo "Generating SBOM from requirements.txt"
+            cyclonedx-py requirements -i requirements.txt -o sbom.json
+            exit 0
+          fi
+
+          if [ -f api/requirements.txt ]; then
+            echo "Generating SBOM from api/requirements.txt"
+            cyclonedx-py requirements -i api/requirements.txt -o sbom.json
+            exit 0
+          fi
+
+          echo "No pyproject.toml or requirements file found; skipping SBOM."
+          echo "{}" > sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
