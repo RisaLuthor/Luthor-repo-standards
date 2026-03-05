@@ -3,6 +3,9 @@ name: Luthor SBOM (CycloneDX)
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   sbom:
     runs-on: ubuntu-latest
@@ -22,6 +25,7 @@ jobs:
           pip install cyclonedx-bom
 
       - name: Generate SBOM (pyproject or requirements)
+        shell: bash
         run: |
           set -euo pipefail
 
@@ -45,7 +49,7 @@ jobs:
             exit 0
           fi
 
-          echo "No pyproject.toml or requirements file found; skipping SBOM."
+          echo "No pyproject.toml or requirements file found; writing empty SBOM."
           echo "{}" > sbom.json
 
       - name: Upload SBOM artifact
